@@ -1,0 +1,132 @@
+// This README is in AsciiDoc format, but the plugin description block below is HTML.
+// The Gradle build extracts the HTML between the markers and injects it into plugin.xml.
+++++
+<!-- DESC_BEGIN -->
+<h2>Demo Agenda<h2>
+
+<h3>Toggle Incomplete/Completed items for a Demo</h3>
+<p>
+  Agenda adds a small yellow gutter icon in <code>Agenda.txt</code> for lines that start with
+  an incomplete item (defaults to blue circle <code>🔵</code>) or a completed item (defaults to check mark <code>✅</code>). Click the icon to toggle the emoji
+  between these two markers. This makes it quick to mark items as done or revert them back to pending.
+<p>
+
+<h3>Features</h3>
+<ul>
+  <li>Default values used if no configuration is set.</li>
+  <li>Settings location: <code>Settings | Tools | Demo Agenda</code> (per project).</li>
+  <li>Detects lines in <code>Agenda.txt</code> beginning with <code>🔵</code> or <code>✅</code>.</li>
+  <li>Shows a yellow gutter toggle icon next to matching lines.</li>
+  <li>One-click or key combination toggle between incomplete (<code>🔵</code>) and completed (<code>✅</code>).</li>
+  <li>Lightweight and works with plain text.</li>
+  <li>Keymap: <code>Settings | Keymap</code> → search for <code>Toggle Agenda Item</code></li>
+  <li> Default keyboard shortcuts:
+    <ul>
+      <li>Windows: <code><strong>Ctrl+Alt+Down</strong></code>.</li>
+      <li>macOS: <code><strong>Cmd+Opt+Down</strong></code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>How to use</h3>
+<ol>
+  <li>Create or open a file named <code>Agenda.txt</code> in your project.</li>
+  <li>Start task lines with <code>🔵</code> for pending or <code>✅</code> for done, for example:<br/>
+    <code>🔵 Draft release notes</code></li>
+  <li>Operation:
+      <ul>
+        <li>Mouse: Click the gutter icon to toggle the state.</li>
+        <li>Keyboard: Use the key combination</li>
+      </ul>
+  </li>
+  <li>May require the file to be closed and re-opened after any new content is added.</li>
+</ol>
+
+<h3>Requirements</h3>
+<ul>
+  <li>Runs on IntelliJ Platform IDEs compatible with the plugin’s declared since-build. (2024.3+)</li>
+</ul>
+
+<h3>Permissions</h3>
+<p>No special permissions. Operates only on the currently opened text file.</p>
+
+<!-- DESC_END -->
+++++
+
+== Project structure
+
+```
+agenda/
+├─ README.adoc                     # This file; description is injected into plugin.xml
+├─ build.gradle.kts                # IntelliJ Platform Gradle Plugin build
+├─ settings.gradle.kts
+├─ gradle.properties               # Version and plugin display name
+├─ gradle/                         # Gradle wrapper files
+├─ IDE/
+│  ├─ BuildPlugin.run.xml          # Run configuration: build distributable plugin ZIP
+│  └─ RunIDE.run.xml               # Run configuration: launch IDE sandbox with the plugin
+├─ Agenda.txt                      # Sample agenda file for quick testing
+└─ src/
+   ├─ main/java/none/cgutils/agenda/
+   │  ├─ AgendaKeyAction.java              # Keyboard action to toggle items
+   │  ├─ AgendaLineMarkerProvider.java     # Gutter icon provider
+   │  ├─ AgendaToggleLogic.java            # Toggle implementation
+   │  └─ settings/
+   │     ├─ AgendaProjectSettings.java
+   │     └─ AgendaProjectSettingsConfigurable.java
+   └─ main/resources/META-INF/
+      ├─ plugin.xml                # Plugin metadata; description injected from README
+      └─ pluginIcon.svg
+```
+
+== Prerequisites
+
+- JDK 21 (project and Kotlin target 21)
+- Gradle Wrapper (use `./gradlew` or `gradlew.bat`; no local Gradle installation required)
+- IntelliJ IDEA 2024.3+ recommended; plugin targets since-build `251` (2025.1)
+- Internet access for Gradle to fetch IntelliJ Platform artifacts
+
+== Setup
+
+1. Clone the repository.
+2. Open the project in IntelliJ IDEA (Open as Gradle project).
+3. Set Project SDK to JDK 21: File > Project Structure > SDKs.
+4. Let Gradle sync. The IntelliJ Platform Gradle Plugin (`org.jetbrains.intellij.platform` 2.7.1) will configure tasks.
+
+== Build, run
+
+- Build: `./gradlew build`
+- Run IDE sandbox with the plugin: `./gradlew runIde`
+- Build distributable plugin ZIP: `./gradlew buildPlugin` (output: `build/distributions/*.zip`)
+
+== Using the IDE run configurations (IDE/*.run.xml)
+
+This repo includes ready-to-use IntelliJ run configurations under `IDE/`:
+
+- `RunIDE.run.xml` — launches an IntelliJ sandbox with this plugin enabled.
+- `BuildPlugin.run.xml` — builds the distributable plugin ZIP.
+
+Two ways to use them:
+
+1) Import manually
+   - IntelliJ IDEA: Run > Edit Configurations… > gear icon > Import Configuration…
+   - Select the `.run.xml` file from the `IDE/` directory.
+
+2) Copy into the project’s run configuration folder
+   - Create a `.run/` directory at the project root (if missing).
+   - Copy the desired `*.run.xml` files from `IDE/` into `.run/`.
+   - IntelliJ will pick them up automatically under Run/Debug Configurations.
+
+After importing, use the Run/Debug toolbar to select and run the configuration.
+
+== First run checklist
+
+- Open or create an `Agenda.txt` file in your project root.
+- If the gutter icon does not appear immediately on newly added lines, close and re-open the file.
+- The keyboard action is available as `Toggle Agenda Item` (bind under Settings | Keymap).
+
+== Troubleshooting
+
+- Gradle cannot resolve IntelliJ Platform: ensure you are online and configure proxies if needed.
+- Build fails due to JDK: verify JDK 21 is configured for both Project SDK and Gradle JVM.
+- Sandbox IDE starts without the plugin: run via the provided run configuration or `./gradlew runIde`.

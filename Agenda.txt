@@ -1,0 +1,4 @@
+➡️Validate the Demo Agenda IntelliJ plugin
+------------------------------------------
+🔵 Click the Gutter Icon on this line.
+🔵 Use the Ctrl + Alt + 🔽 (macOS: ⌥ + ⌘ + 🔽) shortcut when the cursor is on the line.

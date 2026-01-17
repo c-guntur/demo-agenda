@@ -1,0 +1,45 @@
+<idea-plugin>
+    <id>none.cgutils.intellij.plugins.agenda</id>
+
+    <!-- Plugin name is provided by Gradle (pluginConfiguration.name) from gradle.properties -->
+
+    <vendor url="https://cguntur.me/">CGuntur</vendor>
+
+    <description><![CDATA[
+        Adds a yellow toggle gutter icon in Agenda.txt on
+        lines starting with incomplete/completed markers.
+        Clicking the icon toggles the emoji between these
+        two markers.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Provide gutter icons for Agenda.txt lines -->
+        <codeInsight.lineMarkerProvider
+                language="TEXT"
+                implementationClass="none.cgutils.agenda.AgendaLineMarkerProvider"/>
+
+        <!-- Project-level settings service -->
+        <projectService
+                serviceImplementation="none.cgutils.agenda.settings.AgendaProjectSettings"/>
+
+        <!-- Settings UI under Settings | Tools | Agenda (per project) -->
+        <projectConfigurable
+                id="none.cgutils.agenda.settings"
+                parentId="tools"
+                displayName="Demo Agenda"
+                instance="none.cgutils.agenda.settings.AgendaProjectSettingsConfigurable"/>
+    </extensions>
+
+    <actions>
+        <action id="none.cgutils.agenda.ToggleAgendaItem"
+                class="none.cgutils.agenda.AgendaKeyAction"
+                text="Toggle Agenda Item"
+                description="Toggle incomplete/completed markers on the current line in the Agenda">
+            <keyboard-shortcut keymap="$default" first-keystroke="control alt DOWN"/>
+        </action>
+    </actions>
+</idea-plugin>
