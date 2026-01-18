@@ -5,7 +5,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import none.cgutils.agenda.AgendaToggleLogic;
+import none.cgutils.agenda.AgendaConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +32,7 @@ public final class AgendaProjectSettings implements PersistentStateComponent<Age
 
     @Override
     public @Nullable State getState() {
-        return state;
+        return this.state;
     }
 
     @Override
@@ -41,34 +41,34 @@ public final class AgendaProjectSettings implements PersistentStateComponent<Age
     }
 
     public String getIncompleteIcon() {
-        String v = state.incompleteIcon;
-        if (v == null || v.isBlank()) return AgendaToggleLogic.DEFAULT_INCOMPLETE;
-        return v;
+        String icon = this.state.incompleteIcon;
+        if (StringUtils.isBlank(icon)) return AgendaConstants.DEFAULT_INCOMPLETE;
+        return icon;
     }
 
-    public String getCompletedIcon() {
-        String v = state.completedIcon;
-        if (v == null || v.isBlank()) return AgendaToggleLogic.DEFAULT_COMPLETED;
-        return v;
-    }
+	public void setIncompleteIcon(@Nullable String value) {
+		this.state.incompleteIcon = (StringUtils.isBlank(value)) ? null : value;
+	}
 
-    public void setIncompleteIcon(@Nullable String value) {
-        state.incompleteIcon = (value == null || value.isBlank()) ? null : value;
+	public String getCompletedIcon() {
+        String icon = this.state.completedIcon;
+		if (StringUtils.isBlank(icon)) return AgendaConstants.DEFAULT_COMPLETED;
+        return icon;
     }
 
     public void setCompletedIcon(@Nullable String value) {
-        state.completedIcon = (value == null || value.isBlank()) ? null : value;
+		this.state.completedIcon = (StringUtils.isBlank(value)) ? null : value;
     }
 
     public String getAgendaFileName() {
-        String agendaFileName = state.agendaFileName;
+        String agendaFileName = this.state.agendaFileName;
         if (StringUtils.isNotBlank(agendaFileName)) {
 			return agendaFileName;
 		}
-		return "Agenda.txt";
+		return AgendaConstants.DEFAULT_AGENDA_FILENAME;
     }
 
     public void setAgendaFileName(@Nullable String value) {
-        state.agendaFileName = (value == null || value.isBlank()) ? null : value;
+		this.state.agendaFileName = (StringUtils.isBlank(value)) ? null : value;
     }
 }

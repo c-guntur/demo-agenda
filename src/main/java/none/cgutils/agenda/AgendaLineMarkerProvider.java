@@ -5,10 +5,12 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import none.cgutils.agenda.settings.AgendaProjectSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,9 +24,9 @@ import java.util.List;
  */
 public class AgendaLineMarkerProvider implements LineMarkerProvider {
 
-    private static final Icon GUTTER_ICON = AllIcons.FileTypes.ContextsModifier;
+	public static final Icon GUTTER_ICON = AllIcons.FileTypes.ContextsModifier;
 
-    @Override
+	@Override
     public @Nullable LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
         // We do bulk work in collectSlowLineMarkers
         return null;
@@ -35,28 +37,25 @@ public class AgendaLineMarkerProvider implements LineMarkerProvider {
                                        @NotNull Collection<? super LineMarkerInfo<?>> result) {
         if (elements.isEmpty()) return;
         PsiFile file = elements.getFirst().getContainingFile();
-        if (file == null || !new AgendaToggleLogic().isAgendaFileName(file.getProject(), file.getName())) return;
+        if (file == null || new AgendaToggleLogic().isNotAgendaFileName(file.getName())) return;
 
         Project project = file.getProject();
         Document document = file.getViewProvider().getDocument();
         if (document == null) return;
 
         // Build logic from per-project settings
-        var settings = none.cgutils.agenda.settings.AgendaProjectSettings.getInstance(project);
-        AgendaToggleLogic logic = new AgendaToggleLogic(settings.getIncompleteIcon(), settings.getCompletedIcon());
+        var settings = AgendaProjectSettings.getInstance(project);
+        AgendaToggleLogic logic = new AgendaToggleLogic(settings);
 
         int lineCount = document.getLineCount();
         for (int line = 0; line < lineCount; line++) {
-            int start = document.getLineStartOffset(line);
-            int end = document.getLineEndOffset(line);
-            if (end <= start) continue;
-            String text = document.getText(new TextRange(start, end));
-            if (!logic.lineStartsWithMarker(text)) continue;
+			var toggleResult = logic.getAgendaToggleResult(document, line);
+			if (toggleResult == null) continue;
 
-            PsiElement anchor = file.findElementAt(start);
+            PsiElement anchor = file.findElementAt(toggleResult.start());
             if (anchor == null) anchor = file;
 
-            TextRange range = new TextRange(start, start);
+            TextRange range = new TextRange(toggleResult.start(), toggleResult.start());
             GutterIconNavigationHandler<PsiElement> handler = new ToggleHandler(project, document, line, logic);
             LineMarkerInfo<PsiElement> info = new LineMarkerInfo<>(
                     anchor,
@@ -64,7 +63,7 @@ public class AgendaLineMarkerProvider implements LineMarkerProvider {
                     GUTTER_ICON,
 					psi -> null,
                     handler,
-                    com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment.LEFT,
+                    GutterIconRenderer.Alignment.LEFT,
                     () -> "Toggle agenda item"
             );
 
@@ -77,7 +76,7 @@ public class AgendaLineMarkerProvider implements LineMarkerProvider {
 
 		@Override
 		public void navigate(MouseEvent e, PsiElement elt) {
-			AgendaToggleLogic.writeToggledIcon(project, document, line, logic);
+			this.logic.writeToggledIcon(this.project, this.document, this.line);
 		}
 	}
 }

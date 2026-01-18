@@ -4,76 +4,90 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import none.cgutils.agenda.settings.AgendaProjectSettings;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * UI-free logic for determining toggle behavior in Agenda files.
  * Used by both gutter line markers and key action.
  */
 public final class AgendaToggleLogic {
-	public static final String DEFAULT_PLUGIN_NAME = "Demo Agenda";
-	public static final String PLUGIN_ID = "none.cgutils.intellij.plugins.agenda";
 
-	public static final String DEFAULT_INCOMPLETE = "🔵"; // U+1F535
-    public static final String DEFAULT_COMPLETED = "✅";   // U+2705
-    public static final String DEFAULT_AGENDA_FILENAME = "Agenda.txt";
-
-    public final String incompleteIcon;
+	public final String incompleteIcon;
     public final String completedIcon;
+	public final String agendaFileName;
+
+	record AgendaToggleResult(int start, int end, String toggled) {}
 
     public AgendaToggleLogic() {
-        this(DEFAULT_INCOMPLETE, DEFAULT_COMPLETED);
+        this(AgendaConstants.DEFAULT_INCOMPLETE, AgendaConstants.DEFAULT_COMPLETED, AgendaConstants.DEFAULT_AGENDA_FILENAME);
     }
 
-    public AgendaToggleLogic(String incompleteIcon, String completed) {
+    public AgendaToggleLogic(String incompleteIcon, String completed, String agendaFileName) {
         this.incompleteIcon = incompleteIcon;
         this.completedIcon = completed;
+		this.agendaFileName = agendaFileName;
     }
 
-	public static void writeToggledIcon(Project project, Document document, int line, AgendaToggleLogic logic) {
-		int start = logic.getLineStartOffset(document, line);
-		int end = logic.getLineEndOffset(document, line);
+    public AgendaToggleLogic(AgendaProjectSettings settings) {
+		if (settings != null) {
+			this.incompleteIcon = settings.getIncompleteIcon();
+			this.completedIcon = settings.getCompletedIcon();
+			this.agendaFileName = settings.getAgendaFileName();
+		} else {
+			this.incompleteIcon = AgendaConstants.DEFAULT_INCOMPLETE;
+			this.completedIcon = AgendaConstants.DEFAULT_COMPLETED;
+			this.agendaFileName = AgendaConstants.DEFAULT_AGENDA_FILENAME;
+		}
+    }
 
-		String text = document.getText(new TextRange(start, end));
-		if (!logic.lineStartsWithMarker(text)) return;
-		String toggled = logic.toggleLine(text);
-		if (toggled.equals(text)) return;
+	public boolean isNotAgendaFileName(String fileName) {
+		if (fileName == null) return true;
+		return !StringUtils.equalsIgnoreCase(this.agendaFileName, fileName);
+	}
+
+	public boolean lineStartsWithMarker(String line) {
+		return line != null && (line.startsWith(this.incompleteIcon) || line.startsWith(this.completedIcon));
+	}
+
+	public void writeToggledIcon(Project project, Document document, int line) {
+		AgendaToggleResult result = getAgendaToggleResult(document, line);
+		if (result == null) return;
 
 		WriteCommandAction.runWriteCommandAction(project, () ->
-				document.replaceString(start, end, toggled)
+				document.replaceString(result.start(), result.end(), result.toggled())
 		);
 	}
 
- public boolean isAgendaFileName(Project project, String fileName) {
-        if (fileName == null) return false;
-        var settings = none.cgutils.agenda.settings.AgendaProjectSettings.getInstance(project);
-        String expected = settings.getAgendaFileName();
-        return expected.equalsIgnoreCase(fileName);
-    }
+	@Nullable AgendaToggleResult getAgendaToggleResult(Document document, int line) {
+		int start = this.getLineStartOffset(document, line);
+		int end = this.getLineEndOffset(document, line);
 
-    public boolean lineStartsWithMarker(String line) {
-        return line != null && (line.startsWith(incompleteIcon) || line.startsWith(completedIcon));
-    }
+		String text = document.getText(new TextRange(start, end));
+		if (!this.lineStartsWithMarker(text)) return null;
+		String toggled = this.toggleLine(text);
+		if (toggled.equals(text)) return null;
+		AgendaToggleResult result = new AgendaToggleResult(start, end, toggled);
+		return result;
+	}
 
-    public boolean lineStartsWithIncomplete(String line) {
-        return line != null && line.startsWith(incompleteIcon);
-    }
+	int getLineStartOffset(Document document, int line) {
+		return document.getLineStartOffset(line);
+	}
 
-    public String toggleLine(String line) {
+	int getLineEndOffset(Document document, int line) {
+		return document.getLineEndOffset(line);
+	}
+
+    String toggleLine(String line) {
         if (line == null || line.isEmpty()) return line;
-        if (line.startsWith(incompleteIcon)) {
-            return completedIcon + line.substring(incompleteIcon.length());
+        if (line.startsWith(this.incompleteIcon)) {
+            return this.completedIcon + line.substring(this.incompleteIcon.length());
         }
-        if (line.startsWith(completedIcon)) {
-            return incompleteIcon + line.substring(completedIcon.length());
+        if (line.startsWith(this.completedIcon)) {
+            return this.incompleteIcon + line.substring(this.completedIcon.length());
         }
         return line;
-    }
-
-    public int getLineStartOffset(Document document, int line) {
-        return document.getLineStartOffset(line);
-    }
-
-    public int getLineEndOffset(Document document, int line) {
-        return document.getLineEndOffset(line);
     }
 }
