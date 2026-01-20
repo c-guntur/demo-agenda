@@ -55,7 +55,8 @@
 
 == Project structure
 
-```
+[source]
+----
 agenda/
 ├─ README.adoc                     # This file; description is injected into plugin.xml
 ├─ build.gradle.kts                # IntelliJ Platform Gradle Plugin build
@@ -77,7 +78,7 @@ agenda/
    └─ main/resources/META-INF/
       ├─ plugin.xml                # Plugin metadata; description injected from README
       └─ pluginIcon.svg
-```
+----
 
 == Prerequisites
 
@@ -98,6 +99,17 @@ agenda/
 - Build: `./gradlew build`
 - Run IDE sandbox with the plugin: `./gradlew runIde`
 - Build distributable plugin ZIP: `./gradlew buildPlugin` (output: `build/distributions/*.zip`)
+
+== Installation (from ZIP)
+
+To install the plugin from a distributable ZIP:
+
+1. Open IntelliJ IDEA.
+2. Go to `Settings` (on macOS `Settings` or `IntelliJ IDEA | Settings`).
+3. Select `Plugins`.
+4. Click the gear icon (top right) and choose `Install Plugin from Disk…`.
+5. Navigate to the `build/distributions/` directory and select the generated ZIP file.
+6. Restart the IDE if prompted.
 
 == Using the IDE run configurations (IDE/*.run.xml)
 
