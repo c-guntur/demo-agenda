@@ -105,7 +105,7 @@ agenda/
 To install the plugin from a distributable ZIP:
 
 1. Open IntelliJ IDEA.
-2. Go to `Settings` (on macOS `Settings` or `IntelliJ IDEA | Settings`).
+2. Go to `Settings`.
 3. Select `Plugins`.
 4. Click the gear icon (top right) and choose `Install Plugin from Disk…`.
 5. Navigate to the `build/distributions/` directory and select the generated ZIP file.
